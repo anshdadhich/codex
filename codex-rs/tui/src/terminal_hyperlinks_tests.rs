@@ -79,3 +79,29 @@ fn source_wrapping_clips_a_cursor_sentinel_at_the_input_boundary() {
 
     assert!(lines_with_sources_eq(&actual, &[expected]));
 }
+
+#[test]
+fn source_wrapping_snaps_a_range_start_inside_a_multibyte_character() {
+    let text = "长问长问➡尾巴";
+    let arrow = text.find('➡').expect("arrow");
+    let source = annotate_web_urls_in_line(Line::from(text));
+    let mut wrapped = crate::wrapping::word_wrap_line_with_source(&source.line, text.len());
+    wrapped.last_mut().expect("wrapped line").range.start = arrow + 1;
+
+    let actual = remap_source_wrapped_line(&source, wrapped);
+
+    assert_eq!(line_text(&actual[0].line), text);
+}
+
+#[test]
+fn source_wrapping_snaps_a_prefix_inside_a_multibyte_character() {
+    let text = "长问长问➡尾巴";
+    let arrow = text.find('➡').expect("arrow");
+    let source = annotate_web_urls_in_line(Line::from(text));
+    let mut wrapped = crate::wrapping::word_wrap_line_with_source(&source.line, text.len());
+    wrapped.last_mut().expect("wrapped line").prefix_bytes = arrow + 1;
+
+    let actual = remap_source_wrapped_line(&source, wrapped);
+
+    assert_eq!(line_text(&actual[0].line), text);
+}
